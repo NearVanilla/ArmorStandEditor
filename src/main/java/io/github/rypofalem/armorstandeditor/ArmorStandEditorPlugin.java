@@ -31,6 +31,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -69,6 +70,10 @@ public class ArmorStandEditorPlugin extends JavaPlugin {
     double updateCheckerInterval;
 
     //Edit Tool Information
+
+    public final PersistentDataType<Byte,Byte> editToolKeyType = PersistentDataType.BYTE;
+	public final NamespacedKey editToolKey = new NamespacedKey(this, "ASE");
+
     Material editTool;
     String toolType;
     int editToolData = Integer.MIN_VALUE;
@@ -81,6 +86,7 @@ public class ArmorStandEditorPlugin extends JavaPlugin {
     List<?> allowedWorldList = null;
     boolean allowCustomModelData = false;
     Integer customModelDataInt = Integer.MIN_VALUE;
+    public boolean requireToolKey = false; // Not configurable through config, since it's up to plugin to hook into
 
     //GUI Settings
     boolean requireSneaking = false;
@@ -260,6 +266,8 @@ public class ArmorStandEditorPlugin extends JavaPlugin {
         if (requireToolLore) {
             editToolLore = getConfig().getList("toolLore", null);
         }
+
+        requireToolKey = getConfig().getBoolean("requireToolKey", false);
 
         enablePerWorld = getConfig().getBoolean("enablePerWorldSupport", false);
         if (enablePerWorld) {
@@ -544,6 +552,11 @@ public class ArmorStandEditorPlugin extends JavaPlugin {
 
         }
 
+        if(requireToolKey) {
+			if(!itemStk.hasItemMeta()) return false;
+			if(itemStk.getItemMeta().getPersistentDataContainer().get(editToolKey, editToolKeyType) == null) return false;
+		}
+
         if (allowCustomModelData && customModelDataInt != null) {
             //If the ItemStack does not have Metadata then we return false
             if (!itemStk.hasItemMeta()) {
@@ -615,6 +628,8 @@ public class ArmorStandEditorPlugin extends JavaPlugin {
         if (requireToolLore) {
             editToolLore = getConfig().getList("toolLore", null);
         }
+
+        requireToolKey = getConfig().getBoolean("requireToolKey", false);
 
 
         enablePerWorld = getConfig().getBoolean("enablePerWorldSupport", false);
